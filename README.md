@@ -4,6 +4,9 @@ Boletas electrónicas para Odoo 18 sobre `tf_dte_cl`: boleta electrónica (39),
 boleta no afecta o exenta electrónica (41) y notas de crédito (61) sobre
 boletas, emitidas desde Contabilidad. Versión 18.0.1.1.0.
 
+**Estado:** set de pruebas de boletas **aprobado** en el ambiente de
+certificación del SII (noviembre de 2026) con esta versión del módulo.
+
 El Punto de Venta irá en un módulo aparte (`tf_dte_cl_boleta_pos`), para que
 una empresa que solo emite boletas desde Contabilidad no tenga que instalarlo.
 
@@ -62,7 +65,7 @@ limitar por la IP real del cliente.
 
 ## Set de pruebas de certificación
 
-Según el correo del SII («Proceso Certificación de Boletas Electrónicas»):
+Procedimiento con el que se aprobó el set. Según el correo del SII («Proceso Certificación de Boletas Electrónicas»):
 CAF de 5 folios, set en **un solo sobre** y **RCOF** asociado, ambos por
 **upload** en certificación, y pedir la revisión con el Track ID. **Plazo: 24
 horas desde que se descarga el CAF.**
@@ -72,8 +75,20 @@ horas desde que se descarga el CAF.**
 2. Las boletas con caso **no se envían solas** (ni el cron ni el botón).
 3. Seleccionarlas en la lista y usar *Acción > Set de certificación de boletas*:
    arma y firma un único EnvioBOLETA y el RCOF (ConsumoFolio_v10).
-4. Subir ambos archivos en el sitio de certificación del SII y pedir la revisión
-   con el Track ID del sobre de boletas.
+4. Subir **los dos** archivos en el sitio de certificación del SII: el sobre de
+   boletas y el RCOF. Si falta el RCOF, el SII rechaza el set.
+5. Pedir la revisión con el **Track ID del sobre de boletas**, no con el del
+   RCOF.
+
+Lo aprendido al aprobarlo:
+
+- Si se rehace el set el mismo día, el RCOF nuevo debe llevar un **SecEnvio
+  mayor** que el anterior (campo del asistente); con el mismo número, el SII lo
+  objeta.
+- Revisar las cantidades y montos de cada caso contra el set antes de armar el
+  sobre: un error de digitación se rechaza como «líneas no cuadran».
+- El RCOF solo se exige en certificación: en producción no se envía (Res. Ex.
+  N° 53 de 2022).
 
 La unidad «kg» de Odoo se informa como `Kg`, como pide el caso 5.
 
@@ -101,38 +116,50 @@ La unidad «kg» de Odoo se informa como `Kg`, como pide el caso 5.
   receptor e IVA incluido (ver su README).
 - `tf_dte_cl_intercambio` 18.0.6.1.0: las boletas y sus notas de crédito quedan
   fuera del intercambio entre contribuyentes.
+- `tf_l10n_cl_f29` 18.0.1.1.0: suma las boletas (39 en 110/111, 41 en 586/142,
+  sus notas de crédito en 509/510). No depende de este módulo.
 
 ## Límites de facturacion_electronica 0.24.0 en boletas
 
 | Campo del formato | Situación | Efecto |
 |---|---|---|
 | `MedioPago` (obligatorio sobre 135 UF) | No se transmite | Boletas sobre 135 UF bloqueadas |
-| `RUTProvSW` (condicional: RUT del proveedor de software o del emisor si es desarrollo propio) | Comentado en la librería | No se informa; confirmar en certificación si el SII lo exige |
-| `MntNeto` en boleta 41 | La librería informa `<MntNeto>0</MntNeto>` (el formato lo marca como no aplicable) | Válido contra el XSD; confirmar en certificación |
+| `RUTProvSW` (condicional: RUT del proveedor de software o del emisor si es desarrollo propio) | Comentado en la librería | No se informa; el SII aprobó el set sin él |
+| `MntNeto` en boleta 41 | La librería informa `<MntNeto>0</MntNeto>` (el formato lo marca como no aplicable) | Válido contra el XSD; sin observaciones del SII hasta ahora |
 | `CorreoRecep`, `TelefonoRecep` | No se transmiten en boletas | Sin efecto: son opcionales |
-| Referencias en boletas | La librería omite `TpoDocRef` y `FolioRef` | Las boletas no llevan referencias en esta versión |
+| Referencias en boletas | La librería omite `TpoDocRef` y `FolioRef` | Las boletas solo llevan la referencia del set (`CodRef` SET, `RazonRef` CASO-n), aceptada por el SII |
 
 Las respuestas JSON de la API REST se interpretan con los campos que lee la
 librería (`trackid`, `estado`, `estadistica`, `detalle_rep_rech`, `codigo`,
-`descripcion`). Deben confirmarse con envíos reales en certificación.
+`descripcion`).
 
-## Por confirmar en certificación
+## Validado en certificación
 
-- Respuestas JSON reales de la API REST: códigos de estado del envío y del
-  documento. Un envío sin confirmar cuya consulta no da un código concluyente
-  queda en *Envío sin confirmar* hasta revisarlo.
-- IVA calculado como total menos neto (el formato lo define como tasa × neto;
-  pueden diferir en un peso en montos pequeños).
-- Si el set de pruebas de boletas exige referencias (`CodRef`/`RazonRef`), hoy
-  bloqueadas en boletas.
+- XML de la boleta y del sobre `EnvioBOLETA`, timbre y firma.
+- Detalle bruto con `IndServicio` 3, `MntNeto` por división y `IVA` por
+  diferencia: el SII no objetó los totales del set.
+- Referencia del set (`CodRef` SET, `RazonRef` CASO-n) y unidad `Kg`.
+- RCOF (ConsumoFolio_v10) con `SecEnvio` creciente.
+- Sitio de consulta impreso en el timbre.
+
+## Por confirmar con los primeros envíos en producción
+
+El set se entregó por **upload**, así que la **API REST** del SII no se ejercitó
+en la certificación:
+
+- Respuestas JSON reales de la API: códigos de estado del envío y del documento.
+  Un envío cuya consulta no da un código concluyente queda en *Envío sin
+  confirmar* hasta revisarlo.
+- Notas de crédito sobre boletas en un envío real (van en `EnvioDTE` normal).
+
+Conviene revisar a mano el estado de las primeras boletas y notas de crédito.
 
 ## Pendiente
 
+- Antes de emitir en producción: **Declaración de Cumplimiento** y autorización
+  del SII para boletas; luego diarios 39/41 y CAF de producción.
 - Punto de Venta (`tf_dte_cl_boleta_pos`).
-- F29: `tf_l10n_cl_f29` aún no suma las boletas; antes de emitirlas en producción
-  hay que agregar sus códigos.
 - Envío agrupado (hasta 500 boletas por sobre): hoy se envía una boleta por sobre.
-- Prueba en el ambiente de certificación del SII.
 
 ## Pruebas
 
