@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ruta real: views/res_config_settings_views.xml -->
+<odoo>
+
+    <record id="res_config_settings_view_form_tf_dte_cl_boleta" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.tf_dte_cl_boleta</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="tf_dte_cl.res_config_settings_view_form_tf_dte_cl"/>
+        <field name="arch" type="xml">
+            <xpath expr="//setting[@id='tf_dte_cl_sending']" position="before">
+                <setting id="tf_dte_cl_boleta" string="Boletas" company_dependent="1"
+                         help="Boletas 39 y 41: cliente por defecto, IVA incluido y precios al público.">
+                    <div class="content-group">
+                        <div class="row">
+                            <label for="tf_dte_cl_boleta_partner_id" class="col-lg-4 o_light_label"/>
+                            <field name="tf_dte_cl_boleta_partner_id"/>
+                        </div>
+                        <div class="row">
+                            <label for="tf_dte_cl_boleta_tax_id" class="col-lg-4 o_light_label"/>
+                            <field name="tf_dte_cl_boleta_tax_id" options="{'no_create': True}"/>
+                        </div>
+                        <div class="row">
+                            <label for="tf_dte_cl_boleta_pricelist_id" class="col-lg-4 o_light_label"/>
+                            <field name="tf_dte_cl_boleta_pricelist_id"/>
+                        </div>
+                        <div class="row">
+                            <label for="tf_dte_cl_boleta_verify_url" class="col-lg-4 o_light_label"/>
+                            <field name="tf_dte_cl_boleta_verify_url" placeholder="turingforge.cl/boleta"/>
+                        </div>
+                        <div class="row">
+                            <label for="tf_dte_cl_boleta_public_xml" class="col-lg-4 o_light_label"/>
+                            <field name="tf_dte_cl_boleta_public_xml"/>
+                        </div>
+                        <div class="mt-2">
+                            <button name="action_tf_dte_cl_boleta_setup" type="object" class="btn-link"
+                                    icon="oi-arrow-right" string="Crear lo que falta para boletas"/>
+                        </div>
+                    </div>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

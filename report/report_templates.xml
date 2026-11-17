@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ruta real: report/report_templates.xml
+     Representación impresa de boletas sobre las plantillas DTE de tf_dte_cl.
+     Formato de boletas v4.2: se imprimen tipo, folio, fecha, RUT emisor, detalle,
+     IVA y total; el receptor solo si está identificado (RUT distinto de 66666666-6).
+     Los montos del detalle son con IVA incluido. -->
+<odoo>
+
+    <!-- Hoja: sin receptor identificado queda solo la fecha de emisión. -->
+    <template id="dte_receiver_tf_dte_cl_boleta" inherit_id="tf_dte_cl.dte_receiver">
+        <xpath expr="//table" position="before">
+            <table t-if="not o._tf_dte_cl_print_receiver()"
+                   class="table table-sm table-borderless border border-dark mb-3 small"
+                   style="width: 100%; table-layout: fixed;">
+                <tr>
+                    <td class="fw-bold" style="width: 18%;">Fecha emisión:</td>
+                    <td t-out="o.tf_dte_cl_emission_date" t-options="{'widget': 'date'}"/>
+                </tr>
+            </table>
+        </xpath>
+        <xpath expr="//table[not(@t-if)]" position="attributes">
+            <attribute name="t-if">o._tf_dte_cl_print_receiver()</attribute>
+        </xpath>
+    </template>
+
+    <!-- Timbre: en boletas, el sitio de consulta del emisor (exigido por el SII). -->
+    <template id="dte_stamp_tf_dte_cl_boleta" inherit_id="tf_dte_cl.dte_stamp">
+        <xpath expr="//div[span[@t-out='o._tf_dte_cl_resolution_text()']]" position="replace">
+            <div style="font-size: 8pt;"><span t-out="o._tf_dte_cl_resolution_text()"/> - Verifique documento:
+                <span t-out="o._tf_dte_cl_verify_url()"/></div>
+        </xpath>
+    </template>
+
+    <!-- Papel continuo: el bloque del receptor solo con cliente identificado. -->
+    <template id="dte_thermal_copy_tf_dte_cl_boleta" inherit_id="tf_dte_cl.dte_thermal_copy">
+        <xpath expr="//div[div[@t-out='commercial.name']]" position="attributes">
+            <attribute name="t-if">o._tf_dte_cl_print_receiver()</attribute>
+        </xpath>
+        <xpath expr="//div[span[@t-out='commercial.tf_dte_cl_giro']]" position="attributes">
+            <attribute name="t-if">commercial.tf_dte_cl_giro</attribute>
+        </xpath>
+    </template>
+
+</odoo>

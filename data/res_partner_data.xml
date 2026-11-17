@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ruta real: data/res_partner_data.xml -->
+<odoo noupdate="1">
+
+    <!-- Consumidor final: RUT genérico para boletas de ventas y servicios sin cliente
+         identificado (formato de boletas v4.2, campo RUTRecep). -->
+    <record id="partner_tf_dte_cl_boleta_anonymous" model="res.partner">
+        <field name="name">Consumidor final</field>
+        <field name="vat">66666666-6</field>
+        <field name="country_id" ref="base.cl"/>
+        <field name="is_company" eval="False"/>
+    </record>
+
+</odoo>

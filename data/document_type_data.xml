@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ruta real: data/document_type_data.xml
+     El núcleo trae las boletas 39 y 41 archivadas en el catálogo de referencias; este
+     módulo las activa para poder citarlas en notas de crédito. Se ejecuta en cada
+     instalación o actualización del módulo. -->
+<odoo>
+    <function model="tf_dte_cl.document_type" name="_tf_dte_cl_boleta_activate_types"/>
+</odoo>
